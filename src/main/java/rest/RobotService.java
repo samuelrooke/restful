@@ -1,5 +1,7 @@
 package rest;
 
+import java.util.List;
+
 import data.Robot;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -30,6 +32,18 @@ public class RobotService {
         em.close();
         return robot;
     }
+    
+    @GET
+    @Path("/all")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Robot> readAllPrey() {
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("jagare");
+        EntityManager em = emf.createEntityManager();
+		List<Robot> list = em.createQuery("SELECT a FROM Prey a", Robot.class).getResultList();
+        
+        return list;
+    }
+
 
     @GET
     @Path("/addRobot1")

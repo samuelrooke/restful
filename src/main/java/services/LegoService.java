@@ -12,6 +12,6 @@ public class LegoService {
     @Path("/LegoService")
     @Produces(MediaType.TEXT_PLAIN)
     public String getLego() {
-        return "Lego service";
+        return "lego";
     }
 }
