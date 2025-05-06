@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Robot Speed Controller</title>
+  <script>
+    let speedA = 0;
+    let speedB = 0;
+
+    function updateDisplay() {
+      document.getElementById("status").textContent =
+        `Speed A: ${speedA}, Speed B: ${speedB}`;
+    }
+
+    function sendSpeeds() {
+      const payload = { id: 1, speeda: speedA, speedb: speedB };
+      fetch("./rest/lego/addRobot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => console.log("Server response:", data));
+    }
+
+    function accelerate(change) {
+      speedA += change;
+      speedB += change;
+      updateDisplay();
+      sendSpeeds();
+    }
+
+    function turn(left) {
+      if (left) speedA -= 10;
+      else      speedB -= 10;
+      updateDisplay();
+      sendSpeeds();
+    }
+
+    document.addEventListener("DOMContentLoaded", updateDisplay);
+  </script>
+</head>
+<body>
+  <h2>Robot Speed Controller</h2>
+  <button onclick="accelerate(10)">Speed Up</button>
+  <button onclick="accelerate(-10)">Slow Down / Reverse</button>
+  <button onclick="turn(true)">Turn Left</button>
+  <button onclick="turn(false)">Turn Right</button>
+  <p id="status"></p>
+</body>
+</html>
