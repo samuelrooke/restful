@@ -13,14 +13,18 @@
     }
 
     function sendSpeeds() {
-      const payload = { id: 1, speeda: speedA, speedb: speedB };
+      const payload = { speeda: speedA, speedb: speedB };  // Removed fixed id
       fetch("./rest/lego/addRobot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       })
-      .then(res => res.json())
-      .then(data => console.log("Server response:", data));
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+        return res.json();
+      })
+      .then(data => console.log("Server response:", data))
+      .catch(err => console.error("Fetch error:", err));
     }
 
     function accelerate(change) {
@@ -31,13 +35,36 @@
     }
 
     function turn(left) {
-      if (left) speedA -= 10;
-      else      speedB -= 10;
+      if (left) speedB -= 10;
+      else      speedA -= 10;
       updateDisplay();
       sendSpeeds();
     }
 
     document.addEventListener("DOMContentLoaded", updateDisplay);
+
+    document.addEventListener("keydown", function(event) {
+      switch(event.key.toLowerCase()) {
+        case 'w':
+          accelerate(10);
+          break;
+        case 's':
+          accelerate(-10);
+          break;
+        case 'a':
+          turn(true);
+          break;
+        case 'd':
+          turn(false);
+          break;
+        case ' ':
+          speedA = 0;
+          speedB = 0;
+          updateDisplay();
+          sendSpeeds();  // <-- Fixed missing ()
+          break;
+      }
+    });
   </script>
 </head>
 <body>
@@ -46,6 +73,7 @@
   <button onclick="accelerate(-10)">Slow Down / Reverse</button>
   <button onclick="turn(true)">Turn Left</button>
   <button onclick="turn(false)">Turn Right</button>
+  <button onclick="speedA = 0; speedB = 0; updateDisplay(); sendSpeeds();">Stop</button>
   <p id="status"></p>
 </body>
 </html>

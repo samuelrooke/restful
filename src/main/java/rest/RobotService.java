@@ -6,6 +6,7 @@ import data.Robot;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
+import jakarta.persistence.Query;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -24,31 +25,71 @@ public class RobotService {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Robot updateRobotSpeed(Robot robot) {
-        System.out.println("Received robot speeds: " + robot.getSpeeda() + ", " + robot.getSpeedb());
         EntityManager em = EMF.createEntityManager();
-        em.getTransaction().begin();
-        em.persist(robot);
-        em.getTransaction().commit();
-        em.close();
-        return robot;
+        try {
+            System.out.println("Received robot speeds: " + robot.getSpeeda() + ", " + robot.getSpeedb());
+            em.getTransaction().begin();
+            em.persist(robot);
+            em.getTransaction().commit();
+            return robot;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
     }
-    
+
     @GET
     @Path("/all")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Robot> readAllPrey() {
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("jagare");
-        EntityManager em = emf.createEntityManager();
-		List<Robot> list = em.createQuery("SELECT a FROM Prey a", Robot.class).getResultList();
-        
-        return list;
+    public List<Robot> readAllRobots() {
+        EntityManager em = EMF.createEntityManager();
+        try {
+            return em.createQuery("SELECT r FROM Robot r", Robot.class).getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+
+    @Path("/getvalues")
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getValues() {
+        EntityManager em=EMF.createEntityManager();
+        em.getTransaction().begin();
+        Query q=em.createQuery("select s from Robot s order by s.id desc").setMaxResults(1);
+        List<Robot> list=q.getResultList();
+        em.getTransaction().commit();
+        Robot Robot=list.get(0);
+        return Robot.getId()+"#"+Robot.getSpeeda()+"#"+Robot.getSpeedb();
     }
 
 
     @GET
-    @Path("/addRobot1")
+    @Path("/instructions")
     @Produces(MediaType.TEXT_PLAIN)
     public String info() {
         return "Use POST with JSON to control robot speeds.";
+    }
+
+    @GET
+    @Path("/command")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Robot getLatestCommand() {
+        EntityManager em = EMF.createEntityManager();
+        try {
+            return em.createQuery("SELECT r FROM Robot r ORDER BY r.id DESC", Robot.class)
+                     .setMaxResults(1)
+                     .getSingleResult();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
     }
 }
