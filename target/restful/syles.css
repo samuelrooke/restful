@@ -1,0 +1,44 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 0px;
+    height: 100%;
+}
+body.flames {
+    background-image: url('tuli.webp'); /* Replace with your flame GIF URL */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+}
+.controller {
+    display: flex;
+    flex-direction: column; /* Arrange rows in a column */
+    align-items: center; /* Center rows horizontally */
+    gap: 20px; /* Add spacing between rows */
+    margin: 20px auto;
+}
+
+.middle-row {
+    display: flex;
+    flex-direction: row; /* Arrange buttons in a row */
+    justify-content: center; /* Center the row */
+    gap: 10px; /* Add spacing between buttons */
+}
+
+button {
+    padding: 20px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 150px;
+}
+
+button:hover {
+    background-color: #efffe6;
+}
+
+button.active {
+    background-color: #d4f0ff; /* Change background color to indicate it's pressed */
+    transform: scale(0.95); /* Slightly shrink the button to simulate a press */
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2); /* Add an inset shadow */
+}

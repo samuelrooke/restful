@@ -1,79 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Robot Speed Controller</title>
+  <link rel="stylesheet" href="syles.css" />
   <script>
     let speedA = 0;
     let speedB = 0;
+    const MAX_SPEED = 90;
 
     function updateDisplay() {
-      document.getElementById("status").textContent =
-        `Speed A: ${speedA}, Speed B: ${speedB}`;
+        document.getElementById("status").textContent =
+            `Speed A: ${speedA}, Speed B: ${speedB}`;
+        drawSpeedometer((speedA + speedB) / 2);
+        if ((speedA + speedB) / 2 > 70) {
+            document.body.classList.add("flames");
+        } else {
+            document.body.classList.remove("flames");
+        }
+    }
+
+    function drawSpeedometer(speed) {
+        const canvas = document.getElementById("speedometer");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        ctx.arc(150, 150, 100, Math.PI, 2 * Math.PI);
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = "#000";
+        ctx.stroke();
+//speedometer
+        for (let i = 0; i <= 10; i++) {
+            const angle = Math.PI + (i * Math.PI) / 10;
+            const x1 = 150 + Math.cos(angle) * 90;
+            const y1 = 150 + Math.sin(angle) * 90;
+            const x2 = 150 + Math.cos(angle) * 100;
+            const y2 = 150 + Math.sin(angle) * 100;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#000";
+            ctx.stroke();
+        }
+//speedometer needle
+        const needleAngle = Math.PI + (speed / 100) * Math.PI;
+        const needleX = 150 + Math.cos(needleAngle) * 80;
+        const needleY = 150 + Math.sin(needleAngle) * 80;
+        ctx.beginPath();
+        ctx.moveTo(150, 150);
+        ctx.lineTo(needleX, needleY);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "red";
+        ctx.stroke();
+
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "#000";
+        ctx.textAlign = "center";
+        ctx.fillText(`Speed: ${Math.round(speed)}`, 150, 140);
     }
 
     function sendSpeeds() {
-      const payload = { speeda: speedA, speedb: speedB };  // Removed fixed id
-      fetch("./rest/lego/addRobot", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      })
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
-        return res.json();
-      })
-      .then(data => console.log("Server response:", data))
-      .catch(err => console.error("Fetch error:", err));
+        const payload = { speeda: speedA, speedb: speedB };
+        fetch("./rest/lego/addRobot", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        })
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+            return res.json();
+        })
+        .then(data => console.log("Server response:", data))
+        .catch(err => console.error("Fetch error:", err));
     }
 
     function accelerate(change) {
-      speedA += change;
-      speedB += change;
-      updateDisplay();
-      sendSpeeds();
+        speedA += change;
+        speedB += change;
+        updateDisplay();
+        sendSpeeds();
     }
 
     function turn(left) {
-      if (left) speedB -= 10;
-      else      speedA -= 10;
-      updateDisplay();
-      sendSpeeds();
+        if (left) speedB -= 10;
+        else      speedA -= 10;
+        updateDisplay();
+        sendSpeeds();
     }
 
-    document.addEventListener("DOMContentLoaded", updateDisplay);
+    document.addEventListener("DOMContentLoaded", () => {
+        updateDisplay();
+        drawSpeedometer(0);
+    });
 
     document.addEventListener("keydown", function(event) {
-      switch(event.key.toLowerCase()) {
-        case 'w':
-          accelerate(10);
-          break;
-        case 's':
-          accelerate(-10);
-          break;
-        case 'a':
-          turn(true);
-          break;
-        case 'd':
-          turn(false);
-          break;
-        case ' ':
-          speedA = 0;
-          speedB = 0;
-          updateDisplay();
-          sendSpeeds();  // <-- Fixed missing ()
-          break;
-      }
+        const key = event.key.toLowerCase();
+        let button;
+
+        switch (key) {
+            case 'w':
+                accelerate(10);
+                button = document.querySelector(".speedup");
+                break;
+            case 's':
+                accelerate(-10);
+                button = document.querySelector(".reverse");
+                break;
+            case 'a':
+                turn(true);
+                button = document.querySelector(".left");
+                break;
+            case 'd':
+                turn(false);
+                button = document.querySelector(".right");
+                break;
+            case ' ':
+                speedA = 0;
+                speedB = 0;
+                updateDisplay();
+                sendSpeeds();
+                button = document.querySelector(".stop");
+                break;
+        }
+        if(speedA > MAX_SPEED) {
+            speedA = MAX_SPEED;
+        }
+        if(speedB > MAX_SPEED) {
+            speedB = MAX_SPEED;
+        }
+        if(speedA < -MAX_SPEED) {
+            speedA = -MAX_SPEED;
+        }
+        if(speedB < -MAX_SPEED) {
+            speedB = -MAX_SPEED;
+        }
+        if (button) {
+            button.classList.add("active");
+        }
+    });
+
+    document.addEventListener("keyup", function(event) {
+        const key = event.key.toLowerCase();
+        let button;
+
+        switch (key) {
+            case 'w':
+                button = document.querySelector(".speedup");
+                break;
+            case 's':
+                button = document.querySelector(".reverse");
+                break;
+            case 'a':
+                button = document.querySelector(".left");
+                break;
+            case 'd':
+                button = document.querySelector(".right");
+                break;
+            case ' ':
+                button = document.querySelector(".stop");
+                break;
+        }
+
+        if (button) {
+            button.classList.remove("active");
+        }
     });
   </script>
 </head>
 <body>
   <h2>Robot Speed Controller</h2>
-  <button onclick="accelerate(10)">Speed Up</button>
-  <button onclick="accelerate(-10)">Slow Down / Reverse</button>
-  <button onclick="turn(true)">Turn Left</button>
-  <button onclick="turn(false)">Turn Right</button>
-  <button onclick="speedA = 0; speedB = 0; updateDisplay(); sendSpeeds();">Stop</button>
+  <div class="controller">
+    <button class="speedup" onclick="accelerate(10)">Speed Up</button>
+    <div class="middle-row">
+        <button class="left" onclick="turn(true)">Turn Left</button>
+        <button class="stop" onclick="speedA = 0; speedB = 0; updateDisplay(); sendSpeeds();">Stop</button>
+        <button class="right" onclick="turn(false)">Turn Right</button>
+    </div>
+    <button class="reverse" onclick="accelerate(-10)">Reverse</button>
+  </div>
+  <canvas id="speedometer" width="300" height="150"></canvas>
   <p id="status"></p>
 </body>
 </html>
