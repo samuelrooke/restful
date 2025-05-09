@@ -59,7 +59,8 @@
         ctx.textAlign = "center";
         ctx.fillText(`Speed: ${Math.round(speed)}`, 150, 140);
     }
-
+    // Tämä funktio lähettää nopeudet palvelimelle
+    // ja käsittelee mahdolliset virheet.
     function sendSpeeds() {
         const payload = { speeda: speedA, speedb: speedB };
         fetch("./rest/lego/addRobot", {
@@ -97,7 +98,9 @@
     document.addEventListener("keydown", function(event) {
         const key = event.key.toLowerCase();
         let button;
-
+        //wasd kontrollit
+        //w = eteenpäin, s = taaksepäin, a = vasemmalle, d = oikealle
+        //space = pysäytä
         switch (key) {
             case 'w':
                 accelerate(10);

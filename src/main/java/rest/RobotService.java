@@ -17,9 +17,11 @@ import jakarta.ws.rs.core.MediaType;
 @Path("/lego")
 public class RobotService {
 
+    // Luodaan yhteys tietokantaan
     private static final EntityManagerFactory EMF =
         Persistence.createEntityManagerFactory("restful");
 
+    // Tallennetaan robotin nopeudet tietokantaan
     @POST
     @Path("/addRobot")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -29,7 +31,7 @@ public class RobotService {
         try {
             System.out.println("Received robot speeds: " + robot.getSpeeda() + ", " + robot.getSpeedb());
             em.getTransaction().begin();
-            em.persist(robot);
+            em.persist(robot); // tallennetaan olio
             em.getTransaction().commit();
             return robot;
         } catch (Exception e) {
@@ -40,6 +42,7 @@ public class RobotService {
         }
     }
 
+    // Haetaan kaikki robot-oliot tietokannasta
     @GET
     @Path("/all")
     @Produces(MediaType.APPLICATION_JSON)
@@ -55,20 +58,21 @@ public class RobotService {
         }
     }
 
+    // Haetaan viimeisimmän robotin arvot tekstinä
     @Path("/getvalues")
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String getValues() {
-        EntityManager em=EMF.createEntityManager();
+        EntityManager em = EMF.createEntityManager();
         em.getTransaction().begin();
-        Query q=em.createQuery("select s from Robot s order by s.id desc").setMaxResults(1);
-        List<Robot> list=q.getResultList();
+        Query q = em.createQuery("select s from Robot s order by s.id desc").setMaxResults(1);
+        List<Robot> list = q.getResultList();
         em.getTransaction().commit();
-        Robot Robot=list.get(0);
-        return Robot.getId()+"#"+Robot.getSpeeda()+"#"+Robot.getSpeedb();
+        Robot Robot = list.get(0);
+        return Robot.getId() + "#" + Robot.getSpeeda() + "#" + Robot.getSpeedb();
     }
 
-
+    // Ohjeita käyttöön
     @GET
     @Path("/instructions")
     @Produces(MediaType.TEXT_PLAIN)
@@ -76,6 +80,7 @@ public class RobotService {
         return "Use POST with JSON to control robot speeds.";
     }
 
+    // Palautetaan uusin robotin komento JSON-muodossa
     @GET
     @Path("/command")
     @Produces(MediaType.APPLICATION_JSON)
